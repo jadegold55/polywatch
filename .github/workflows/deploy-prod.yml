@@ -1,0 +1,53 @@
+name: Deploy Prod
+
+# Triggered by a semver git tag (e.g. v1.0.0).
+# Requires manual approval via the "production" GitHub Environment before it runs.
+# Create the Environment in: repo Settings → Environments → New environment → "production"
+# Add yourself as a required reviewer there.
+#
+# Required secrets (same as deploy-dev, set on the "production" Environment):
+#   GCP_WORKLOAD_IDENTITY_PROVIDER
+#   GCP_SERVICE_ACCOUNT
+#   GCP_PROJECT_ID
+#   GCP_REGION
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  deploy:
+    name: Deploy to GCP
+    runs-on: ubuntu-latest
+    environment: production  # this is what gates on manual approval
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials polywatch \
+            --region ${{ secrets.GCP_REGION }} \
+            --project ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Deploy to GKE
+        run: kubectl apply -k deploy/k8s/overlays/gcp
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/api -n polywatch --timeout=5m
+          kubectl rollout status deployment/evaluator -n polywatch --timeout=5m
+          kubectl rollout status deployment/investigator -n polywatch --timeout=5m
+          kubectl rollout status deployment/notifier -n polywatch --timeout=5m

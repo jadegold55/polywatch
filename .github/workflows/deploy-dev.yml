@@ -1,0 +1,57 @@
+name: Deploy Dev
+
+# Runs on every merge to main.
+# Rebuilds images and pushes them to GCP Artifact Registry.
+# The k8s Deployments pick up the new image on the next rollout.
+#
+# Required secrets (configure in week 4 with Terraform):
+#   GCP_WORKLOAD_IDENTITY_PROVIDER  — full provider resource name
+#   GCP_SERVICE_ACCOUNT             — SA email with Artifact Registry writer role
+#   GCP_PROJECT_ID                  — GCP project ID
+#   GCP_REGION                      — e.g. us-central1
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  push-images:
+    name: Build and push images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # required for Workload Identity Federation
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/api.Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/polywatch/api:${{ github.sha }}
+            ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/polywatch/api:latest
+
+      - name: Build and push worker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/worker.Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/polywatch/worker:${{ github.sha }}
+            ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/polywatch/worker:latest
