@@ -26,3 +26,14 @@ Things I now understand that I didn't understand before. One entry per learning 
 ---
 
 <!-- Entries go below this line, newest first -->
+
+## 2026-04-11 — Integrating Claude Code into a project without touching the API
+
+**What I was confused about:** The plan called for a "Claude Code GitHub integration" for PR review and I assumed that meant I had to wire up the Anthropic API myself — get a key, write code that calls it, add a workflow that invokes it manually.
+
+**What I thought was true that wasn't:** That using Claude in CI required writing API integration code, the same way you'd integrate any other service.
+
+**What actually clicked:**
+Just use the github app auth path using claude in terminal
+
+**Example that helped it land:** Ran `/install-github-app` inside the Claude Code CLI, merged the PR it opened, then opened a test PR and Claude posted a review comment automatically. Zero API code written.
