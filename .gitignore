@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Mypy
+.mypy_cache/
+dmypy.json
+
+# Ruff
+.ruff_cache/
+
+# Alembic (keep the directory, ignore generated versions if desired)
+# Uncomment if you want to ignore auto-generated migration scripts:
+# src/polywatch/db/migrations/versions/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Docker
+*.override.yml
+
+# Claude Code (local project settings)
+.claude/settings.local.json
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Terraform
+deploy/terraform/.terraform/
+deploy/terraform/*.tfstate
+deploy/terraform/*.tfstate.backup
+deploy/terraform/.terraform.lock.hcl
+deploy/terraform/terraform.tfvars
+
+# kind / kubectl
+*.kubeconfig
