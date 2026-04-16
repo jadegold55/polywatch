@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/python -c \"import fastapi; print\\(fastapi.__version__\\)\")",
+      "Read(//c/Users/cgold/Desktop/polywatch/**)",
+      "Bash(gh pr create --title 'feat: FastAPI app configuration' --body ':*)"
+    ]
+  }
+}
